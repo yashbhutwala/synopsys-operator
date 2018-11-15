@@ -118,7 +118,6 @@ func GetOpsSightDefaultValue() *opssightv1.OpsSightSpec {
 			ConcurrentScanLimit:          2,
 			TotalScanLimit:               1000,
 			PasswordEnvVar:               "PCP_HUBUSERPASSWORD",
-			Password:                     "blackduck",
 			InitialCount:                 1,
 			MaxCount:                     1,
 			DeleteHubThresholdPercentage: 50,

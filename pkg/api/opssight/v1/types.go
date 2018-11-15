@@ -50,7 +50,6 @@ type RegistryAuth struct {
 type Hub struct {
 	User                string `json:"user"`
 	Port                int    `json:"port"`
-	Password            string `json:"password"`
 	ConcurrentScanLimit int    `json:"concurrentScanLimit"`
 	TotalScanLimit      int    `json:"totalScanLimit"`
 	PasswordEnvVar      string `json:"passwordEnvVar"`
