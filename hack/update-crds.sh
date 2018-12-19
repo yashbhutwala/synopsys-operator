@@ -13,8 +13,8 @@ pushd $GOPATH/src/k8s.io
 popd 
 
 pushd $GOPATH/src/k8s.io/code-generator
-crds=( hub opssight alert )
-crdVersions=( v2 v1 v1 )
+crds=( sample-component hub opssight alert )
+crdVersions=( v1 v2 v1 v1 )
 j=0
   for i in "${crds[@]}" ; do
 	set +x
