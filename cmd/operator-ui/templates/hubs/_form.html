@@ -13,6 +13,16 @@
         <%= f.InputTag("Spec.PVC["+index+"].Size", {Id: claim.Name, value: claim.Size, label: "Postgres Claim Size", placeholder: "Required for creating the Persistent Volume and Volume Claim", required: true}) %>
         <% } %>
     </div>
+    <%= f.CheckboxTag("externalDbCheckbox", {label: "External Database", onchange: "toggleDbCheckbox(this)"}) %>
+    <div id="externalDbId">
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresHost", {value: hub.Spec.ExternalPostgres.PostgresHost, label: "PostgreSQL Host"}) %>
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresPort", {value: hub.Spec.ExternalPostgres.PostgresPort, label: "PostgreSQL Port"}) %>
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresAdmin", {value: hub.Spec.ExternalPostgres.PostgresAdmin, label: "PostgreSQL Admin User", placeholder: "blackduck"}) %>
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresAdminPassword", {value: hub.Spec.ExternalPostgres.PostgresAdminPassword, label: "PostgreSQL Admin Password"}) %>
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresUser", {value: hub.Spec.ExternalPostgres.PostgresUser, label: "PostgreSQL User", placeholder: "blackduck_user"}) %>
+      <%= f.InputTag("Spec.ExternalPostgres.PostgresUserPassword", {value: hub.Spec.ExternalPostgres.PostgresUserPassword, label: "PostgreSQL User Password"}) %>
+      <%= f.CheckboxTag("Spec.ExternalPostgres.PostgresSsl", {value: hub.Spec.ExternalPostgres.PostgresSsl, label: "Enable SSL"}) %>
+    </div>
     <%= f.SelectTag("Spec.CertificateName", {value: hub.Spec.CertificateName, options: hub.View.CertificateNames, label: "Certificate Name", onchange: "checkNginxCertificate()"}) %>
     <div id="certificateId">
       <%= f.TextAreaTag("Spec.Certificate", {value: hub.Spec.Certificate, label: "Certificate"}) %>
@@ -80,6 +90,7 @@
 function formLoad() {
   checkNginxCertificate();
   checkScanType();
+  document.getElementById("externalDbId").style.display= 'none';
   // if (document.getElementById("hub-Status.ErrorMessage").value.length > 0) {
   //   document.getElementById("hub-Status.ErrorMessage").hidden = false;
   // }
@@ -168,5 +179,14 @@ function validateAndGetValues() {
     opt.setAttribute("selected", "selected");
     containerTags.add(opt);
   };
+}
+
+function toggleDbCheckbox(element) {
+  externalDbId=document.getElementById("externalDbId");
+  if (element.checked) {
+    externalDbId.style.display = '';
+  } else {
+    externalDbId.style.display = 'none';
+  }
 }
 </script>

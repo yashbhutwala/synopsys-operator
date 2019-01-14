@@ -9,7 +9,7 @@
 
 [[constraint]]
   name = "github.com/blackducksoftware/synopsys-operator"
-  branch = "jd-healthchecks"
+  branch = "jd-ext-db"
 	
 [[constraint]]
   name = "github.com/sirupsen/logrus"
