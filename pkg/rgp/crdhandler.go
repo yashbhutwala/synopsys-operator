@@ -85,6 +85,11 @@ func (h *Handler) ObjectCreated(obj interface{}) {
 		return
 	}
 
+	if strings.EqualFold(gr.Status.State, string(Running)) || strings.EqualFold(gr.Status.State, string(Stopped)) {
+		h.ObjectUpdated(nil, gr)
+	}
+
+
 	log.Info(gr.Name)
 
 	gr.Status.State = string(Creating)
