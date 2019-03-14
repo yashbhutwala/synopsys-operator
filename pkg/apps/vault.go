@@ -67,7 +67,7 @@ func (v *Vault) GetPod() *components.Pod {
 		ContainerConfig: &horizonapi.ContainerConfig{
 			Name:       "vault",
 			Image:      "vault:0.11.2",
-			PullPolicy: horizonapi.PullAlways,
+			PullPolicy: horizonapi.PullIfNotPresent,
 			MinMem:     "",
 			MaxMem:     "",
 			MinCPU:     "",

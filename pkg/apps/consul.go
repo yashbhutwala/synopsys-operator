@@ -50,7 +50,7 @@ func (c *Consul) GetConsulStatefulSet() *components.StatefulSet {
 		ContainerConfig: &horizonapi.ContainerConfig{
 			Name:       "consul",
 			Image:      "consul:1.0.0",
-			PullPolicy: horizonapi.PullAlways,
+			PullPolicy: horizonapi.PullIfNotPresent,
 			MinMem:     "",
 			MaxMem:     "",
 			MinCPU:     "",
