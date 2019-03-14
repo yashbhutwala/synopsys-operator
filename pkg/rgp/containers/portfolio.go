@@ -88,6 +88,10 @@ func (g *RgpDeployer) GetPortfolioService() *components.Service {
 		Namespace:     g.Grspec.Namespace,
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
+	service.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-portfolio-service",
+	})
 	service.AddSelectors(map[string]string{
 		"name": "rp-portfolio-service",
 	})

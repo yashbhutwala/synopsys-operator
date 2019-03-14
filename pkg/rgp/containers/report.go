@@ -89,6 +89,10 @@ func (g *RgpDeployer) GetReportService() *components.Service {
 		Namespace:     g.Grspec.Namespace,
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
+	service.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "report-service",
+	})
 	service.AddSelectors(map[string]string{
 		"name": "report-service",
 	})

@@ -22,6 +22,7 @@ under the License.
 package containers
 
 import (
+	"github.com/blackducksoftware/horizon/pkg/components"
 	horizondeployer "github.com/blackducksoftware/horizon/pkg/deployer"
 	"github.com/blackducksoftware/synopsys-operator/pkg/api/rgp/v1"
 	"k8s.io/client-go/rest"
@@ -44,21 +45,39 @@ func (g *RgpDeployer) GetDeployer() (*horizondeployer.Deployer, error) {
 
 	deployer, _ := horizondeployer.NewDeployer(g.kubeConfig)
 
-	deployer.AddDeployment(g.GetFrontendDeployment())
-	deployer.AddDeployment(g.GetIssueManagerDeployment())
-	deployer.AddDeployment(g.GetPolarisDeployment())
-	deployer.AddDeployment(g.GetPortfolioDeployment())
-	deployer.AddDeployment(g.GetReportDeployment())
-	deployer.AddDeployment(g.GetToolsPortfolioDeployment())
-	deployer.AddDeployment(g.GetAuthServerDeployment())
+	for _, v := range g.GetDeployments() {
+		deployer.AddDeployment(v)
+	}
 
-	deployer.AddService(g.GetFrontendService())
-	deployer.AddService(g.GetIssueManagerService())
-	deployer.AddService(g.GetPolarisService())
-	deployer.AddService(g.GetPortfolioService())
-	deployer.AddService(g.GetReportService())
-	deployer.AddService(g.GetToolsPortfolioService())
-	deployer.AddService(g.GetAuthServerService())
+	for _, v := range g.GetServices() {
+		deployer.AddService(v)
+	}
 
 	return deployer, nil
+}
+
+// GetDeployments() will return a list of Deployment
+func (g *RgpDeployer) GetDeployments() []*components.Deployment {
+	return []*components.Deployment{
+		g.GetFrontendDeployment(),
+		g.GetIssueManagerDeployment(),
+		g.GetPolarisDeployment(),
+		g.GetPortfolioDeployment(),
+		g.GetReportDeployment(),
+		g.GetToolsPortfolioDeployment(),
+		g.GetAuthServerDeployment(),
+	}
+}
+
+// GetServices will return a list of Service
+func (g *RgpDeployer) GetServices() []*components.Service {
+	return []*components.Service{
+		g.GetFrontendService(),
+		g.GetIssueManagerService(),
+		g.GetPolarisService(),
+		g.GetPortfolioService(),
+		g.GetReportService(),
+		g.GetToolsPortfolioService(),
+		g.GetAuthServerService(),
+	}
 }

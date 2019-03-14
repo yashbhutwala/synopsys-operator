@@ -26,9 +26,11 @@ import (
 	"github.com/blackducksoftware/horizon/pkg/deployer"
 	"github.com/blackducksoftware/synopsys-operator/pkg/api/rgp/v1"
 	"github.com/blackducksoftware/synopsys-operator/pkg/apps"
+	"github.com/blackducksoftware/synopsys-operator/pkg/crdupdater"
 	grclientset "github.com/blackducksoftware/synopsys-operator/pkg/rgp/client/clientset/versioned"
 	"github.com/blackducksoftware/synopsys-operator/pkg/rgp/containers"
 	"github.com/blackducksoftware/synopsys-operator/pkg/util"
+	"github.com/juju/errors"
 	log "github.com/sirupsen/logrus"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -156,18 +158,22 @@ func (c *Creater) Create(spec *v1.RgpSpec) error {
 	}
 	//
 	//Deploy
-	gr := containers.NewRgpDeployer(spec, c.kubeConfig, spec)
-	deployer, err := gr.GetDeployer()
+	//gr := containers.NewRgpDeployer(spec, c.kubeConfig, spec)
+	//deployer, err := gr.GetDeployer()
+	//if err != nil {
+	//	log.Errorf("unable to get gr components for %s due to %+v", spec.Namespace, err)
+	//	return err
+	//}
+	//
+	//err = deployer.Run()
+	//if err != nil {
+	//	return err
+	//}
+
+	err = c.Update(spec)
 	if err != nil {
-		log.Errorf("unable to get gr components for %s due to %+v", spec.Namespace, err)
 		return err
 	}
-
-	err = deployer.Run()
-	if err != nil {
-		return err
-	}
-
 	return c.createIngress(spec)
 }
 
@@ -250,4 +256,24 @@ func (c *Creater) createIngress(spec *v1.RgpSpec) error {
 		},
 	})
 	return err
+}
+
+func (c *Creater) Update(spec *v1.RgpSpec) error {
+	gr := containers.NewRgpDeployer(spec, c.kubeConfig, spec)
+
+	updater := crdupdater.NewUpdater()
+	// add, patch or remove the replication controllers
+	deploy, err := crdupdater.NewDeployment(c.kubeConfig, c.kubeClient, gr.GetDeployments(), spec.Namespace, "app=rgp", false)
+	if err != nil {
+		return errors.Annotatef(err, "unable to create the deployment object:")
+	}
+	updater.AddUpdater(deploy)
+
+	svc, err := crdupdater.NewService(c.kubeConfig, c.kubeClient, gr.GetServices(), spec.Namespace, "app=rgp")
+	if err != nil {
+		return errors.Annotatef(err, "unable to create the service object:")
+	}
+	updater.AddUpdater(svc)
+
+	return updater.Update()
 }

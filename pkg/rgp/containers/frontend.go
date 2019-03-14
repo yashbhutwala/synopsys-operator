@@ -80,6 +80,10 @@ func (g *RgpDeployer) GetFrontendService() *components.Service {
 		Namespace:     g.Grspec.Namespace,
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
+	service.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "frontend-service",
+	})
 	service.AddSelectors(map[string]string{
 		"name": "frontend-service",
 	})

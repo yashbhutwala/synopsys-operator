@@ -30,6 +30,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"strings"
 )
 
 // HandlerInterface contains the methods that are required
@@ -38,6 +39,24 @@ type HandlerInterface interface {
 	ObjectDeleted(obj string)
 	ObjectUpdated(objOld, objNew interface{})
 }
+
+// State contains the state of the OpsSight
+type State string
+
+const (
+	// Creating is used when it is installing or deploying
+	Creating State = "Creating"
+	// Running is used when it is running
+	Running State = "Running"
+	// Stopping is used when it is about to stop
+	Stopping State = "Stopping"
+	// Stopped is used when it is stopped
+	Stopped State = "Stopped"
+	// Updating is used when it is about to update
+	Updating State = "Updating"
+	// Error is used when the deployment errored out
+	Error State = "Error"
+)
 
 // Handler will store the configuration that is required to initiantiate the informers callback
 type Handler struct {
@@ -68,9 +87,9 @@ func (h *Handler) ObjectCreated(obj interface{}) {
 
 	log.Info(gr.Name)
 
-	gr.Status.State = "Creating"
+	gr.Status.State = string(Creating)
 	gr, err = h.grClient.SynopsysV1().Rgps(h.config.Namespace).Update(gr)
-	if err != nil{
+	if err != nil {
 		log.Error(err.Error())
 		return
 	}
@@ -80,14 +99,14 @@ func (h *Handler) ObjectCreated(obj interface{}) {
 	if err != nil {
 		log.Error(err.Error())
 		gr.Status.ErrorMessage = err.Error()
-		gr.Status.State = "Error"
+		gr.Status.State = string(Error)
 	} else {
-		gr.Status.Fqdn = fmt.Sprintf("%s/reporting",gr.Spec.IngressHost)
-		gr.Status.State = "Running"
+		gr.Status.Fqdn = fmt.Sprintf("%s/reporting", gr.Spec.IngressHost)
+		gr.Status.State = string(Running)
 	}
 
 	_, err = h.grClient.SynopsysV1().Rgps(h.config.Namespace).Update(gr)
-	if err != nil{
+	if err != nil {
 		log.Error(err.Error())
 	}
 
@@ -104,4 +123,16 @@ func (h *Handler) ObjectDeleted(name string) {
 
 // ObjectUpdated will be called for update events
 func (h *Handler) ObjectUpdated(objOld, objNew interface{}) {
+	gr, ok := objNew.(*v1.Rgp)
+	if !ok {
+		log.Error("Unable to cast object")
+		return
+	}
+	if strings.EqualFold(gr.Status.State, string(Running)) || strings.EqualFold(gr.Status.State, string(Stopped)) {
+		creater := NewCreater(h.kubeConfig, h.kubeClient, h.grClient)
+		err := creater.Update(&gr.Spec)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
 }

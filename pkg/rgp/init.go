@@ -265,7 +265,7 @@ func (c *Creater) dbInit(namespace string, pw string) error {
 
 	for {
 		log.Debug("executing SELECT 1")
-		_, err := postgresDB.Exec( "SELECT 1;")
+		_, err := postgresDB.Exec("SELECT 1;")
 		if err == nil {
 			break
 		}

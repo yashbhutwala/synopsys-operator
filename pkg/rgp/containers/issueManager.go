@@ -89,6 +89,10 @@ func (g *RgpDeployer) GetIssueManagerService() *components.Service {
 		Namespace:     g.Grspec.Namespace,
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
+	service.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-issue-manager",
+	})
 	service.AddSelectors(map[string]string{
 		"name": "rp-issue-manager",
 	})
