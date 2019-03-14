@@ -18,6 +18,11 @@ func (g *RgpDeployer) GetPolarisDeployment() *components.Deployment {
 		"app":  "rgp",
 		"name": "polaris-service",
 	})
+
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "polaris-service",
+	})
 	return deployment
 }
 

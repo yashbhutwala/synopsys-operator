@@ -18,6 +18,11 @@ func (g *RgpDeployer) GetToolsPortfolioDeployment() *components.Deployment {
 		"app":  "rgp",
 		"name": "tools-portfolio-service",
 	})
+
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "tools-portfolio-service",
+	})
 	return deployment
 }
 

@@ -19,6 +19,11 @@ func (g *RgpDeployer) GetFrontendDeployment() *components.Deployment {
 		"name": "frontend-service",
 	})
 
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "frontend-service",
+	})
+
 	return deployment
 }
 

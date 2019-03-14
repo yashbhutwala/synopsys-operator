@@ -18,6 +18,11 @@ func (g *RgpDeployer) GetIssueManagerDeployment() *components.Deployment {
 		"app":  "rgp",
 		"name": "rp-issue-manager",
 	})
+
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "rp-issue-manager",
+	})
 	return deployment
 }
 

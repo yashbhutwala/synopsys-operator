@@ -18,6 +18,12 @@ func (g *RgpDeployer) GetAuthServerDeployment() *components.Deployment {
 		"app":  "rgp",
 		"name": "auth-server",
 	})
+
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "auth-server",
+	})
+
 	return deployment
 }
 

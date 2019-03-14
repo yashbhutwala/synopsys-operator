@@ -18,6 +18,11 @@ func (g *RgpDeployer) GetReportDeployment() *components.Deployment {
 		"app":  "rgp",
 		"name": "report-service",
 	})
+
+	deployment.AddMatchLabelsSelectors(map[string]string{
+		"app":  "rgp",
+		"name": "report-service",
+	})
 	return deployment
 }
 
