@@ -22,13 +22,14 @@ under the License.
 package crdupdater
 
 import (
+	"k8s.io/api/apps/v1beta2"
 	"reflect"
 	"strings"
 
 	"github.com/blackducksoftware/horizon/pkg/components"
 	"github.com/blackducksoftware/synopsys-operator/pkg/util"
 	"github.com/juju/errors"
-	appsv1 "k8s.io/api/apps/v1"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -43,8 +44,8 @@ type Deployment struct {
 	deployments    []*components.Deployment
 	labelSelector  string
 	isPatched      bool
-	oldDeployments map[string]*appsv1.Deployment
-	newDeployments map[string]*appsv1.Deployment
+	oldDeployments map[string]*v1beta2.Deployment
+	newDeployments map[string]*v1beta2.Deployment
 }
 
 // NewDeployment returns the replication controller
@@ -62,8 +63,8 @@ func NewDeployment(kubeConfig *rest.Config, kubeClient *kubernetes.Clientset, de
 		deployments:    deployments,
 		labelSelector:  labelSelector,
 		isPatched:      isPatched,
-		oldDeployments: make(map[string]*appsv1.Deployment, 0),
-		newDeployments: make(map[string]*appsv1.Deployment, 0),
+		oldDeployments: make(map[string]*v1beta2.Deployment, 0),
+		newDeployments: make(map[string]*v1beta2.Deployment, 0),
 	}, nil
 }
 
@@ -74,7 +75,7 @@ func (r *Deployment) buildNewAndOldObject() error {
 	if err != nil {
 		return errors.Annotatef(err, "unable to get replication controllers for %s", r.namespace)
 	}
-	for _, oldRC := range oldRCs.(*appsv1.DeploymentList).Items {
+	for _, oldRC := range oldRCs.(*v1beta2.DeploymentList).Items {
 		r.oldDeployments[oldRC.GetName()] = &oldRC
 	}
 
@@ -84,7 +85,7 @@ func (r *Deployment) buildNewAndOldObject() error {
 		if err != nil {
 			return errors.Annotatef(err, "unable to convert replication controller %s to kube %s", newRc.GetName(), r.namespace)
 		}
-		r.newDeployments[newRc.GetName()] = newDeploymentKube.(*appsv1.Deployment)
+		r.newDeployments[newRc.GetName()] = newDeploymentKube.(*v1beta2.Deployment)
 	}
 
 	return nil

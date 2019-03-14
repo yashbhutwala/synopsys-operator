@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"k8s.io/api/apps/v1beta2"
 	"strconv"
 	"strings"
 	"time"
@@ -930,7 +931,7 @@ func PatchDeploymentForReplicas(clientset *kubernetes.Clientset, old appsv1.Depl
 }
 
 // PatchDeployment patch a deployment
-func PatchDeployment(clientset *kubernetes.Clientset, old appsv1.Deployment, new appsv1.Deployment) error {
+func PatchDeployment(clientset *kubernetes.Clientset, old v1beta2.Deployment, new v1beta2.Deployment) error {
 	oldData, err := json.Marshal(old)
 	if err != nil {
 		return err
@@ -939,7 +940,7 @@ func PatchDeployment(clientset *kubernetes.Clientset, old appsv1.Deployment, new
 	if err != nil {
 		return err
 	}
-	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, appsv1.Deployment{})
+	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, v1beta2.Deployment{})
 	if err != nil {
 		return err
 	}
