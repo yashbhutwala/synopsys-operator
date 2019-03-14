@@ -129,6 +129,7 @@ func (h *Handler) ObjectUpdated(objOld, objNew interface{}) {
 		return
 	}
 	if strings.EqualFold(gr.Status.State, string(Running)) || strings.EqualFold(gr.Status.State, string(Stopped)) {
+		log.Debugf("Update: %s", gr.Name)
 		creater := NewCreater(h.kubeConfig, h.kubeClient, h.grClient)
 		err := creater.Update(&gr.Spec)
 		if err != nil {
