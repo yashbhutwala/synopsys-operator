@@ -425,18 +425,18 @@ func DeleteReplicationController(clientset *kubernetes.Clientset, namespace stri
 }
 
 // GetDeployment will get the deployment corresponding to a namespace and name
-func GetDeployment(clientset *kubernetes.Clientset, namespace string, name string) (*appsv1.Deployment, error) {
-	return clientset.AppsV1().Deployments(namespace).Get(name, metav1.GetOptions{})
+func GetDeployment(clientset *kubernetes.Clientset, namespace string, name string) (*v1beta2.Deployment, error) {
+	return clientset.AppsV1beta2().Deployments(namespace).Get(name, metav1.GetOptions{})
 }
 
 // ListDeployments will get all the deployments corresponding to a namespace
-func ListDeployments(clientset *kubernetes.Clientset, namespace string, labelSelector string) (*appsv1.DeploymentList, error) {
-	return clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+func ListDeployments(clientset *kubernetes.Clientset, namespace string, labelSelector string) (*v1beta2.DeploymentList, error) {
+	return clientset.AppsV1beta2().Deployments(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 // DeleteDeployment will delete the deployment corresponding to a namespace and name
 func DeleteDeployment(clientset *kubernetes.Clientset, namespace string, name string) error {
-	return clientset.AppsV1().Deployments(namespace).Delete(name, &metav1.DeleteOptions{GracePeriodSeconds: IntToInt64(0)})
+	return clientset.AppsV1beta2().Deployments(namespace).Delete(name, &metav1.DeleteOptions{GracePeriodSeconds: IntToInt64(0)})
 }
 
 // CreatePersistentVolume will create the persistent volume
