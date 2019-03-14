@@ -8,38 +8,73 @@ import (
 
 // GetAuthServerDeployment return the auth server deployment
 func (g *RgpDeployer) GetAuthServerDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "auth-server",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetAuthServersPod())
+	})
+
+	deployment.AddPod(g.GetAuthServersPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "auth-server",
+	})
+	return deployment
 }
 
 // GetAuthServersPod returns the auth server pod
 func (g *RgpDeployer) GetAuthServersPod() *components.Pod {
-	envs := g.getAuthServerEnvConfigs()
 
-	var containers []*util.Container
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "auth-server",
+	})
 
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "auth-server",
-			Image:      "gcr.io/snps-swip-staging/swip_auth-server:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "2Gi",
-			//MaxMem:     "",
-			//MinCPU:     "250m",
-			//MaxCPU:     "",
-		},
-		VolumeMounts: g.getAuthServerVolumeMounts(),
-		EnvConfigs:   envs,
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "8080"},
-		},
+	container, _ := g.getAuthServerContainer()
+
+	pod.AddContainer(container)
+	for _, v := range g.getAuthServerVolumes() {
+		pod.AddVolume(v)
 	}
 
-	containers = append(containers, container)
-	return util.CreatePod("auth-server", "", g.getAuthServerVolumes(), containers, nil, nil)
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "auth-server",
+	})
+
+	return pod
+}
+
+// getAuthServersContainer returns the auth server pod
+func (g *RgpDeployer) getAuthServerContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "auth-server",
+		Image:      "gcr.io/snps-swip-staging/swip_auth-server:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "2Gi",
+		//MaxMem:     "",
+		//MinCPU:     "250m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "8080",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getAuthServerVolumeMounts() {
+		err := container.AddVolumeMount(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, v := range g.getAuthServerEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return container, nil
 }
 
 // GetAuthServerService returns the auth server service
@@ -50,7 +85,7 @@ func (g *RgpDeployer) GetAuthServerService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "auth-server",
+		"name": "auth-server",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "http", Port: 80, Protocol: horizonapi.ProtocolTCP, TargetPort: "8080"})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "admin", Port: 8081, Protocol: horizonapi.ProtocolTCP, TargetPort: "8081"})

@@ -8,38 +8,72 @@ import (
 
 // GetToolsPortfolioDeployment returns the tools portfolio deployment
 func (g *RgpDeployer) GetToolsPortfolioDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "tools-portfolio-service",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetToolsPortfolioPod())
+	})
+
+	deployment.AddPod(g.GetToolsPortfolioPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "tools-portfolio-service",
+	})
+	return deployment
 }
 
 // GetToolsPortfolioPod returns the tools portfolio pod
 func (g *RgpDeployer) GetToolsPortfolioPod() *components.Pod {
-	envs := g.getToolsPortfolioEnvConfigs()
 
-	var containers []*util.Container
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "tools-portfolio-service",
+	})
 
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "tools-portfolio-service",
-			Image:      "gcr.io/snps-swip-staging/reporting-tools-portfolio-service:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "1Gi",
-			//MaxMem:     "",
-			//MinCPU:     "250m",
-			//MaxCPU:     "",
-		},
-		VolumeMounts: g.getToolsPortfolioVolumeMounts(),
-		EnvConfigs:   envs,
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "60281"},
-		},
+	container, _ := g.getToolPortfolioContainer()
+
+	pod.AddContainer(container)
+	for _, v := range g.getToolsPortfolioVolumes() {
+		pod.AddVolume(v)
 	}
 
-	containers = append(containers, container)
-	return util.CreatePod("tools-portfolio-service", "", g.getToolsPortfolioVolumes(), containers, nil, nil)
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "tools-portfolio-service",
+	})
+
+	return pod
+}
+
+func (g *RgpDeployer) getToolPortfolioContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "tools-portfolio-service",
+		Image:      "gcr.io/snps-swip-staging/reporting-tools-portfolio-service:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "1Gi",
+		//MaxMem:     "",
+		//MinCPU:     "250m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "60281",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getToolsPortfolioVolumeMounts() {
+		err := container.AddVolumeMount(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, v := range g.getToolsPortfolioEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return container, nil
 }
 
 // GetToolsPortfolioService returns the tools portfolio service
@@ -50,7 +84,7 @@ func (g *RgpDeployer) GetToolsPortfolioService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "tools-portfolio-service",
+		"name": "tools-portfolio-service",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "60289", Port: 60281, Protocol: horizonapi.ProtocolTCP, TargetPort: "60281"})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "admin", Port: 8081, Protocol: horizonapi.ProtocolTCP, TargetPort: "8081"})

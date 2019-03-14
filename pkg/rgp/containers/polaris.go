@@ -8,38 +8,72 @@ import (
 
 // GetPolarisDeployment returns the polaris deployment
 func (g *RgpDeployer) GetPolarisDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "polaris-service",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetPolarisPod())
+	})
+
+	deployment.AddPod(g.GetPolarisPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "polaris-service",
+	})
+	return deployment
 }
 
 // GetPolarisPod returns the polaris pod
 func (g *RgpDeployer) GetPolarisPod() *components.Pod {
-	envs := g.getPolarisEnvConfigs()
 
-	var containers []*util.Container
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "polaris-service",
+	})
 
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "polaris-service",
-			Image:      "gcr.io/snps-swip-staging/reporting-polaris-service:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "1Gi",
-			//MaxMem:     "",
-			//MinCPU:     "500m",
-			//MaxCPU:     "",
-		},
-		VolumeMounts: g.getPolarisVolumeMounts(),
-		EnvConfigs:   envs,
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "7788"},
-		},
+	container, _ := g.getPolarisContainer()
+
+	pod.AddContainer(container)
+	for _, v := range g.getPolarisVolumes() {
+		pod.AddVolume(v)
 	}
 
-	containers = append(containers, container)
-	return util.CreatePod("polaris-service", "", g.getReportVolumes(), containers, nil, nil)
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "polaris-service",
+	})
+
+	return pod
+}
+
+func (g *RgpDeployer) getPolarisContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "polaris-service",
+		Image:      "gcr.io/snps-swip-staging/reporting-polaris-service:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "1Gi",
+		//MaxMem:     "",
+		//MinCPU:     "500m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "7788",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getPolarisVolumeMounts() {
+		err := container.AddVolumeMount(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, v := range g.getPolarisEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return container, nil
 }
 
 // GetPolarisService returns the polaris service
@@ -50,7 +84,7 @@ func (g *RgpDeployer) GetPolarisService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "polaris-service",
+		"name": "polaris-service",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "7788", Port: 7788, Protocol: horizonapi.ProtocolTCP, TargetPort: "7788"})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "admin", Port: 8081, Protocol: horizonapi.ProtocolTCP, TargetPort: "8081"})

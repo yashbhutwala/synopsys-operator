@@ -234,6 +234,7 @@ func CreateReplicationControllerFromContainer(replicationControllerConfig *horiz
 	return rc
 }
 
+// CreateStateFulSet will create a statefulset
 func CreateStateFulSet(stateFulSetConfig *horizonapi.StatefulSetConfig, pod *components.Pod) *components.StatefulSet {
 	stateFulSet := components.NewStatefulSet(*stateFulSetConfig)
 	stateFulSet.AddMatchLabelsSelectors(pod.GetObj().Labels)
@@ -241,6 +242,7 @@ func CreateStateFulSet(stateFulSetConfig *horizonapi.StatefulSetConfig, pod *com
 	return stateFulSet
 }
 
+// CreateStateFulSetFromContainer will create a statefulset from a container
 func CreateStateFulSetFromContainer(stateFulSetConfig *horizonapi.StatefulSetConfig, serviceAccount string, containers []*Container, volumes []*components.Volume, initContainers []*Container, affinityConfigs []horizonapi.AffinityConfig) *components.StatefulSet {
 	pod := CreatePod(stateFulSetConfig.Name, serviceAccount, volumes, containers, initContainers, affinityConfigs)
 	stateFulSet := CreateStateFulSet(stateFulSetConfig, pod)

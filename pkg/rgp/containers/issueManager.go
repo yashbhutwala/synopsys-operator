@@ -8,38 +8,73 @@ import (
 
 // GetIssueManagerDeployment returns the issue manager deployment
 func (g *RgpDeployer) GetIssueManagerDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "rp-issue-manager",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetIssueManagerPod())
+	})
+
+	deployment.AddPod(g.GetIssueManagerPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-issue-manager",
+	})
+	return deployment
 }
 
 // GetIssueManagerPod returns the issue manager pod
 func (g *RgpDeployer) GetIssueManagerPod() *components.Pod {
-	envs := g.getIssueManagerEnvConfigs()
 
-	var containers []*util.Container
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "rp-issue-manager",
+	})
 
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "rp-issue-manager",
-			Image:      "gcr.io/snps-swip-staging/reporting-rp-issue-manager:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "1Gi",
-			//MaxMem:     "",
-			//MinCPU:     "500m",
-			//MaxCPU:     "",
-		},
-		VolumeMounts: g.getIssueManagerVolumeMounts(),
-		EnvConfigs:   envs,
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "6888"},
-		},
+	container, _ := g.GetIssueManageContainer()
+
+	pod.AddContainer(container)
+	for _, v := range g.getIssueManagerVolumes() {
+		pod.AddVolume(v)
 	}
 
-	containers = append(containers, container)
-	return util.CreatePod("rp-issue-manager", "", g.getReportVolumes(), containers, nil, nil)
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-issue-manager",
+	})
+
+	return pod
+}
+
+// GetIssueManageContainer will return the container
+func (g *RgpDeployer) GetIssueManageContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "rp-issue-manager",
+		Image:      "gcr.io/snps-swip-staging/reporting-rp-issue-manager:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "1Gi",
+		//MaxMem:     "",
+		//MinCPU:     "500m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "6888",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getIssueManagerVolumeMounts() {
+		err := container.AddVolumeMount(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, v := range g.getIssueManagerEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return container, nil
 }
 
 // GetIssueManagerService returns the issue manager service
@@ -50,7 +85,7 @@ func (g *RgpDeployer) GetIssueManagerService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "rp-issue-manager",
+		"name": "rp-issue-manager",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "6888", Port: 6888, Protocol: horizonapi.ProtocolTCP, TargetPort: "6888"})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "admin", Port: 8081, Protocol: horizonapi.ProtocolTCP, TargetPort: "8081"})

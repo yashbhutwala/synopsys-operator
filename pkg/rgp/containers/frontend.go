@@ -3,41 +3,69 @@ package containers
 import (
 	horizonapi "github.com/blackducksoftware/horizon/pkg/api"
 	"github.com/blackducksoftware/horizon/pkg/components"
-	"github.com/blackducksoftware/synopsys-operator/pkg/util"
 )
 
 // GetFrontendDeployment returns the front end deployment
 func (g *RgpDeployer) GetFrontendDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "frontend-service",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetFrontendPod())
+	})
+
+	deployment.AddPod(g.GetFrontendPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "frontend-service",
+	})
+
+	return deployment
 }
 
 // GetFrontendPod returns the front end pod
 func (g *RgpDeployer) GetFrontendPod() *components.Pod {
-	var containers []*util.Container
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "frontend-service",
-			Image:      "gcr.io/snps-swip-staging/reporting-frontend-service:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "500Mi",
-			//MaxMem:     "",
-			//MinCPU:     "250m",
-			//MaxCPU:     "",
-		},
-		EnvConfigs: g.getFrontendEnvConfigs(),
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "8080"},
-		},
+
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "frontend-servicer",
+	})
+
+	container, _ := g.GetFrontendContainer()
+
+	pod.AddContainer(container)
+
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "frontend-service",
+	})
+
+	return pod
+}
+
+// GetFrontendContainer will return the container
+func (g *RgpDeployer) GetFrontendContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "frontend-service",
+		Image:      "gcr.io/snps-swip-staging/reporting-frontend-service:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "500Mi",
+		//MaxMem:     "",
+		//MinCPU:     "250m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "8080",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getFrontendEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	containers = append(containers, container)
-	pod := util.CreatePod("frontend-service", "", nil, containers, nil, nil)
-	//pod.AddHostAliases([]string{"frontend-service"})
-	return pod
+	return container, nil
 }
 
 // GetFrontendService returns the front end service
@@ -48,7 +76,7 @@ func (g *RgpDeployer) GetFrontendService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "frontend-service",
+		"name": "frontend-service",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "80", Port: 80, Protocol: horizonapi.ProtocolTCP, TargetPort: "8080"})
 	return service

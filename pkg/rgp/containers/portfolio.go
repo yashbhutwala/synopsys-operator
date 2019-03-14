@@ -8,38 +8,72 @@ import (
 
 // GetPortfolioDeployment returns the portfolio deployment
 func (g *RgpDeployer) GetPortfolioDeployment() *components.Deployment {
-	deployConfig := &horizonapi.DeploymentConfig{
+	deployment := components.NewDeployment(horizonapi.DeploymentConfig{
 		Name:      "rp-portfolio-service",
 		Namespace: g.Grspec.Namespace,
-	}
-	return util.CreateDeployment(deployConfig, g.GetPortfolioPod())
+	})
+
+	deployment.AddPod(g.GetPortfolioPod())
+	deployment.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-portfolio-service",
+	})
+	return deployment
 }
 
 // GetPortfolioPod returns the portfolio pod
 func (g *RgpDeployer) GetPortfolioPod() *components.Pod {
-	envs := g.getPortfolioEnvConfigs()
 
-	var containers []*util.Container
+	pod := components.NewPod(horizonapi.PodConfig{
+		Name: "rp-portfolio-service",
+	})
 
-	container := &util.Container{
-		ContainerConfig: &horizonapi.ContainerConfig{
-			Name:       "rp-portfolio-service",
-			Image:      "gcr.io/snps-swip-staging/reporting-rp-portfolio-service:latest",
-			PullPolicy: horizonapi.PullIfNotPresent,
-			//MinMem:     "500Mi",
-			//MaxMem:     "",
-			//MinCPU:     "250m",
-			//MaxCPU:     "",
-		},
-		VolumeMounts: g.getPortfolioVolumeMounts(),
-		EnvConfigs:   envs,
-		PortConfig: []*horizonapi.PortConfig{
-			{ContainerPort: "60289"},
-		},
+	container, _ := g.getPortfolioContainer()
+
+	pod.AddContainer(container)
+	for _, v := range g.getPortfolioVolumes() {
+		pod.AddVolume(v)
 	}
 
-	containers = append(containers, container)
-	return util.CreatePod("rp-portfolio-service", "", g.getReportVolumes(), containers, nil, nil)
+	pod.AddLabels(map[string]string{
+		"app":  "rgp",
+		"name": "rp-portfolio-service",
+	})
+
+	return pod
+}
+
+func (g *RgpDeployer) getPortfolioContainer() (*components.Container, error) {
+	container := components.NewContainer(horizonapi.ContainerConfig{
+		Name:       "rp-portfolio-service",
+		Image:      "gcr.io/snps-swip-staging/reporting-rp-portfolio-service:latest",
+		PullPolicy: horizonapi.PullIfNotPresent,
+		//MinMem:     "500Mi",
+		//MaxMem:     "",
+		//MinCPU:     "250m",
+		//MaxCPU:     "",
+	})
+
+	container.AddPort(horizonapi.PortConfig{
+		ContainerPort: "60289",
+		Protocol:      horizonapi.ProtocolTCP,
+	})
+
+	for _, v := range g.getPortfolioVolumeMounts() {
+		err := container.AddVolumeMount(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, v := range g.getPortfolioEnvConfigs() {
+		err := container.AddEnv(*v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return container, nil
 }
 
 // GetPortfolioService returns the portfolio service
@@ -50,7 +84,7 @@ func (g *RgpDeployer) GetPortfolioService() *components.Service {
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
 	})
 	service.AddSelectors(map[string]string{
-		"app": "rp-portfolio-service",
+		"name": "rp-portfolio-service",
 	})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "60289", Port: 60289, Protocol: horizonapi.ProtocolTCP, TargetPort: "60289"})
 	service.AddPort(horizonapi.ServicePortConfig{Name: "admin", Port: 8081, Protocol: horizonapi.ProtocolTCP, TargetPort: "8081"})
