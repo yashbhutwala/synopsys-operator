@@ -115,7 +115,7 @@ func (c *Creater) Create(spec *v1.RgpSpec) error {
 		MaxCPU:                 "",
 		MinMemory:              "",
 		MaxMemory:              "",
-		Database:               "postgres",
+		Database:               "test",
 		User:                   "postgres",
 		PasswordSecretName:     "db-creds",
 		UserPasswordSecretKey:  "POSTGRES_PASSWORD",
