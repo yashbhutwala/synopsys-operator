@@ -142,6 +142,7 @@ func (c *Consul) GetConsulServices() *components.Service {
 		Name:          "consul",
 		Namespace:     c.namespace,
 		IPServiceType: horizonapi.ClusterIPServiceTypeDefault,
+		ClusterIP:     "None",
 	})
 	consul.AddSelectors(map[string]string{
 		"app": "consul",
