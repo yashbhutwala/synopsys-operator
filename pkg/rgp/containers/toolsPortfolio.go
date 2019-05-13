@@ -51,8 +51,8 @@ func (g *RgpDeployer) GetToolsPortfolioPod() *components.Pod {
 func (g *RgpDeployer) getToolPortfolioContainer() (*components.Container, error) {
 	container := components.NewContainer(horizonapi.ContainerConfig{
 		Name:       "tools-portfolio-service",
-		Image:      "gcr.io/snps-swip-staging/reporting-tools-portfolio-service:latest",
-		PullPolicy: horizonapi.PullIfNotPresent,
+		Image:      "gcr.io/snps-swip-staging/reporting-tools-portfolio-service:0.0.998",
+		PullPolicy: horizonapi.PullAlways,
 		//MinMem:     "1Gi",
 		//MaxMem:     "",
 		//MinCPU:     "250m",

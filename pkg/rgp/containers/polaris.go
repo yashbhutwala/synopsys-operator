@@ -51,8 +51,8 @@ func (g *RgpDeployer) GetPolarisPod() *components.Pod {
 func (g *RgpDeployer) getPolarisContainer() (*components.Container, error) {
 	container := components.NewContainer(horizonapi.ContainerConfig{
 		Name:       "polaris-service",
-		Image:      "gcr.io/snps-swip-staging/reporting-polaris-service:latest",
-		PullPolicy: horizonapi.PullIfNotPresent,
+		Image:      "gcr.io/snps-swip-staging/reporting-polaris-service:0.0.129",
+		PullPolicy: horizonapi.PullAlways,
 		//MinMem:     "1Gi",
 		//MaxMem:     "",
 		//MinCPU:     "500m",

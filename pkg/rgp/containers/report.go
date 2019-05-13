@@ -52,8 +52,8 @@ func (g *RgpDeployer) GetReportPod() *components.Pod {
 func (g *RgpDeployer) getReportContainer() (*components.Container, error) {
 	container := components.NewContainer(horizonapi.ContainerConfig{
 		Name:       "report-service",
-		Image:      "gcr.io/snps-swip-staging/reporting-report-service:latest",
-		PullPolicy: horizonapi.PullIfNotPresent,
+		Image:      "gcr.io/snps-swip-staging/reporting-report-service:0.0.456",
+		PullPolicy: horizonapi.PullAlways,
 		//MinMem:     "1Gi",
 		//MaxMem:     "",
 		//MinCPU:     "250m",

@@ -52,8 +52,8 @@ func (g *RgpDeployer) GetIssueManagerPod() *components.Pod {
 func (g *RgpDeployer) GetIssueManageContainer() (*components.Container, error) {
 	container := components.NewContainer(horizonapi.ContainerConfig{
 		Name:       "rp-issue-manager",
-		Image:      "gcr.io/snps-swip-staging/reporting-rp-issue-manager:latest",
-		PullPolicy: horizonapi.PullIfNotPresent,
+		Image:      "gcr.io/snps-swip-staging/reporting-rp-issue-manager:0.0.508",
+		PullPolicy: horizonapi.PullAlways,
 		//MinMem:     "1Gi",
 		//MaxMem:     "",
 		//MinCPU:     "500m",
