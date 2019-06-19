@@ -39,7 +39,7 @@ items:
         spec:
           containers:
             - name: needs-rebase
-              image: gcr.io/k8s-prow/needs-rebase:v20190507-d0c146f3f
+              image: gcr.io/k8s-prow/needs-rebase:v20190618-e4c04640c
               args:
                 - --dry-run=false
                 - --github-token-path=/etc/github/oauth

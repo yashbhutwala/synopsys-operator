@@ -8,25 +8,17 @@ plugins:
   blackducksoftware/synopsys-operator:
     - approve
     - assign
-    - blunderbuss
-    - cat
-    - dog
     - golint
-    - heart
-    - help
     - hold
     - label
     - lgtm
     - lifecycle
     - milestone
     - owners-label
-    - pony
-    - shrug
     - size
     - trigger
     - verify-owners
     - wip
-    - yuks
 
 external_plugins:
   blackducksoftware/synopsys-operator:
