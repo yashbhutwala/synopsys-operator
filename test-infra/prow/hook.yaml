@@ -47,7 +47,7 @@ items:
           serviceAccountName: hook
           containers:
             - name: hook
-              image: gcr.io/k8s-prow/hook:v20190618-e4c04640c
+              image: gcr.io/k8s-prow/hook:v20190711-39cbdbc1f
               imagePullPolicy: Always
               args:
                 - --dry-run=false

@@ -47,7 +47,7 @@ items:
           terminationGracePeriodSeconds: 30
           containers:
             - name: deck
-              image: gcr.io/k8s-prow/deck:v20190618-e4c04640c
+              image: gcr.io/k8s-prow/deck:v20190711-39cbdbc1f
               args:
                 - --config-path=/etc/config/config.yaml
                 - --tide-url=http://tide/

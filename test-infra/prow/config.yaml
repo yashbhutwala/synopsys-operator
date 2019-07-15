@@ -57,8 +57,6 @@ branch-protection:
               - continuous-integration/travis-ci/pr
           required_pull_request_reviews:
             required_approving_review_count: 1
-#
-# TODO: Migrate travis job to prow job
 # presubmits:
 #   blackducksoftware/synopsys-operator:
 #     - name: gofmt
@@ -69,5 +67,4 @@ branch-protection:
 #         containers:
 #           - command:
 #               - ./hack/verify-gofmt.sh
-#             image: golang:1.11
-#
+#             image: golang:1.12
